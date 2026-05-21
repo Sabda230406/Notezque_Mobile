@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../services/api_service.dart';
+import '../../../../services/sqlite_service.dart';
 import '../../../../utils/constants.dart';
 
 /// Form untuk Create dan Edit Acara
@@ -27,7 +27,7 @@ class _AcaraFormState extends State<AcaraForm> {
   late TextEditingController _tanggalController;
   late TextEditingController _jamController;
   bool _isLoading = false;
-  
+
   bool get isEditMode => widget.activityId != null;
 
   @override
@@ -54,8 +54,8 @@ class _AcaraFormState extends State<AcaraForm> {
       return;
     }
 
-    if (ApiService.token == null) {
-      _showSnackBar('Token tidak ditemukan');
+    if (!SQLiteService.isLoggedIn) {
+      _showSnackBar('Pengguna belum login');
       return;
     }
 
@@ -64,8 +64,7 @@ class _AcaraFormState extends State<AcaraForm> {
     try {
       if (isEditMode) {
         // Update acara
-        await ApiService.updateActivity(
-          ApiService.token!,
+        await SQLiteService.updateActivity(
           widget.activityId!,
           _judulController.text,
           _tanggalController.text,
@@ -74,8 +73,7 @@ class _AcaraFormState extends State<AcaraForm> {
         _showSnackBar('Acara berhasil diperbarui');
       } else {
         // Create acara
-        await ApiService.createActivity(
-          ApiService.token!,
+        await SQLiteService.createActivity(
           _judulController.text,
           _tanggalController.text,
           _jamController.text,
@@ -97,9 +95,9 @@ class _AcaraFormState extends State<AcaraForm> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _selectDate() async {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../services/api_service.dart';
+import '../../../../services/sqlite_service.dart';
 import '../../../../utils/constants.dart';
 
 /// Form untuk Create dan Edit Catatan
@@ -25,7 +25,7 @@ class _CatatanFormState extends State<CatatanForm> {
   late TextEditingController _judulController;
   late TextEditingController _isiController;
   bool _isLoading = false;
-  
+
   bool get isEditMode => widget.noteId != null;
 
   @override
@@ -45,8 +45,8 @@ class _CatatanFormState extends State<CatatanForm> {
   Future<void> _simpanCatatan() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (ApiService.token == null) {
-      _showSnackBar('Token tidak ditemukan');
+    if (!SQLiteService.isLoggedIn) {
+      _showSnackBar('Pengguna belum login');
       return;
     }
 
@@ -55,8 +55,7 @@ class _CatatanFormState extends State<CatatanForm> {
     try {
       if (isEditMode) {
         // Update catatan
-        await ApiService.updateNote(
-          ApiService.token!,
+        await SQLiteService.updateNote(
           widget.noteId!,
           _judulController.text,
           _isiController.text,
@@ -64,8 +63,7 @@ class _CatatanFormState extends State<CatatanForm> {
         _showSnackBar('Catatan berhasil diperbarui');
       } else {
         // Create catatan
-        await ApiService.createNote(
-          ApiService.token!,
+        await SQLiteService.createNote(
           _judulController.text,
           _isiController.text,
         );
@@ -86,9 +84,9 @@ class _CatatanFormState extends State<CatatanForm> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

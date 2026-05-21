@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../services/api_service.dart';
+import '../../../services/sqlite_service.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,13 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String _errorMessage = '';
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -24,20 +32,17 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    final response = await ApiService.login(email, password);
+    final response = await SQLiteService.login(email, password);
+
+    if (!mounted) return;
 
     setState(() => _isLoading = false);
 
-    if (response.containsKey('token')) {
-      // Simpan token di ApiService
-      ApiService.token = response['token'];
-      
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-      }
+    if (response['success'] == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
     } else {
       setState(() {
         _errorMessage = response['message'] ?? 'Login Gagal';
@@ -75,9 +80,12 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 40),
             TextField(
               controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Email',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 prefixIcon: const Icon(Icons.email),
               ),
             ),
@@ -87,16 +95,15 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Password',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 prefixIcon: const Icon(Icons.lock),
               ),
             ),
             const SizedBox(height: 20),
             if (_errorMessage.isNotEmpty)
-              Text(
-                _errorMessage,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -116,6 +123,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
               ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    },
+              child: const Text('Belum punya akun? Register'),
             ),
           ],
         ),

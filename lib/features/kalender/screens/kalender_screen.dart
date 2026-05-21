@@ -4,7 +4,7 @@ import '../forms/acara_form.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
-import '../../../services/api_service.dart';
+import '../../../services/sqlite_service.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../utils/constants.dart';
 
@@ -27,11 +27,13 @@ class _KalenderScreenState extends State<KalenderScreen> {
   }
 
   Future<void> _fetchEvents() async {
-    final token = ApiService.token;
-    if (token == null) return;
+    if (!SQLiteService.isLoggedIn) {
+      setState(() => isLoading = false);
+      return;
+    }
 
     try {
-      final response = await ApiService.getActivities(token);
+      final response = await SQLiteService.getActivities();
       if (response.containsKey('data')) {
         setState(() {
           events = response['data'];
@@ -40,16 +42,14 @@ class _KalenderScreenState extends State<KalenderScreen> {
       }
     } catch (e) {
       setState(() => isLoading = false);
-      print("Error fetching events: $e");
+      debugPrint("Error fetching events: $e");
     }
   }
 
   void _addEvent() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const AcaraForm(),
-      ),
+      MaterialPageRoute(builder: (context) => const AcaraForm()),
     ).then((added) {
       if (added == true) {
         _fetchEvents();
@@ -96,9 +96,9 @@ class _KalenderScreenState extends State<KalenderScreen> {
       ),
     );
 
-    if (confirm == true && ApiService.token != null) {
+    if (confirm == true && SQLiteService.isLoggedIn) {
       try {
-        await ApiService.deleteActivity(ApiService.token!, id);
+        await SQLiteService.deleteActivity(id);
         _fetchEvents();
         if (mounted) {
           _showSnackBar('Acara berhasil dihapus');
@@ -113,14 +113,14 @@ class _KalenderScreenState extends State<KalenderScreen> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildEventList() {
     if (isLoading) return const Center(child: CircularProgressIndicator());
-    
+
     if (events.isEmpty) {
       return const Center(
         child: Text(
@@ -140,11 +140,19 @@ class _KalenderScreenState extends State<KalenderScreen> {
             title: Text(e["title"] ?? "No Title"),
             subtitle: Row(
               children: [
-                SvgPicture.asset('assets/icons/calendar.svg', width: 18, height: 18),
+                SvgPicture.asset(
+                  'assets/icons/calendar.svg',
+                  width: 18,
+                  height: 18,
+                ),
                 const SizedBox(width: 6),
                 Text(DateTimeHelper.formatDate(e['date'] ?? '-')),
                 const SizedBox(width: 12),
-                SvgPicture.asset('assets/icons/clock.svg', width: 18, height: 18),
+                SvgPicture.asset(
+                  'assets/icons/clock.svg',
+                  width: 18,
+                  height: 18,
+                ),
                 const SizedBox(width: 6),
                 Text(DateTimeHelper.formatTime(e['time'] ?? '-')),
               ],
@@ -171,10 +179,7 @@ class _KalenderScreenState extends State<KalenderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: "List Acara",
-        showBackButton: false,
-      ),
+      appBar: const CustomAppBar(title: "List Acara", showBackButton: false),
       floatingActionButton: FloatingActionButton(
         onPressed: _addEvent,
         backgroundColor: AppColors.primary,
@@ -207,13 +212,28 @@ class _KalenderScreenState extends State<KalenderScreen> {
             case 0:
               break;
             case 1:
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const KelolaTugasScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const KelolaTugasScreen(),
+                ),
+              );
               break;
             case 2:
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardScreen(),
+                ),
+              );
               break;
             case 3:
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CatatanListScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CatatanListScreen(),
+                ),
+              );
               break;
           }
         },

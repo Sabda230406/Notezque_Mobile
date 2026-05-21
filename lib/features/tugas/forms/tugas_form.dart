@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../services/api_service.dart';
+import '../../../../services/sqlite_service.dart';
 import '../../../../utils/constants.dart';
 
 /// Form untuk Create dan Edit Tugas
@@ -28,14 +28,16 @@ class _TugasFormState extends State<TugasForm> {
   late TextEditingController _deskripsiController;
   late String _priority;
   bool _isLoading = false;
-  
+
   bool get isEditMode => widget.taskId != null;
 
   @override
   void initState() {
     super.initState();
     _judulController = TextEditingController(text: widget.initialTitle ?? '');
-    _deskripsiController = TextEditingController(text: widget.initialDescription ?? '');
+    _deskripsiController = TextEditingController(
+      text: widget.initialDescription ?? '',
+    );
     _priority = widget.initialPriority ?? 'medium';
   }
 
@@ -49,8 +51,8 @@ class _TugasFormState extends State<TugasForm> {
   Future<void> _simpanTugas() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (ApiService.token == null) {
-      _showSnackBar('Token tidak ditemukan');
+    if (!SQLiteService.isLoggedIn) {
+      _showSnackBar('Pengguna belum login');
       return;
     }
 
@@ -59,8 +61,7 @@ class _TugasFormState extends State<TugasForm> {
     try {
       if (isEditMode) {
         // Update tugas
-        await ApiService.updateTask(
-          ApiService.token!,
+        await SQLiteService.updateTask(
           widget.taskId!,
           _judulController.text,
           _deskripsiController.text,
@@ -68,11 +69,7 @@ class _TugasFormState extends State<TugasForm> {
         _showSnackBar('Tugas berhasil diperbarui');
       } else {
         // Create tugas
-        await ApiService.createTask(
-          ApiService.token!,
-          _judulController.text,
-          _priority,
-        );
+        await SQLiteService.createTask(_judulController.text, _priority);
         _showSnackBar('Tugas berhasil ditambahkan');
       }
 
@@ -90,9 +87,9 @@ class _TugasFormState extends State<TugasForm> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -152,7 +149,10 @@ class _TugasFormState extends State<TugasForm> {
                     const SizedBox(height: 20),
                     const Text(
                       'Pilih Prioritas:',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Row(

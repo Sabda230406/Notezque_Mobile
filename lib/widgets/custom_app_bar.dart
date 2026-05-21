@@ -105,7 +105,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           // Logo
-          Container(
+          SizedBox(
             width: AppSizes.logoSize,
             height: AppSizes.logoSize,
             child: Padding(

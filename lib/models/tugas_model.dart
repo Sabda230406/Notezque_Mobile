@@ -64,15 +64,15 @@
 // 1. Letakkan prompt ini di PALING ATAS file kode Anda
 // 2. Tandai kode yang BOLEH dijadikan soal dengan marker:
 //    <!-- MULAI KODE YANG BOLEH DIJADIKAN SOAL -->
-  // factory Tugas.fromJson(Map<String, dynamic> json) {
-  //   return Tugas(
-  //     id: json['id'] ?? 0,
-  //     judul: json['title'] ?? 'Tanpa Judul',
-  //     deskripsi: json['description'] ?? '',
-  //     tenggatWaktu: json['due_date'] ?? '',
-  //     status: json['status'] ?? 'pending',
-  //   );
-  // }
+// factory Tugas.fromJson(Map<String, dynamic> json) {
+//   return Tugas(
+//     id: json['id'] ?? 0,
+//     judul: json['title'] ?? 'Tanpa Judul',
+//     deskripsi: json['description'] ?? '',
+//     tenggatWaktu: json['due_date'] ?? '',
+//     status: json['status'] ?? 'pending',
+//   );
+// }
 //    <!-- SELESAI KODE YANG BOLEH DIJADIKAN SOAL -->
 // 3. Semua kode di luar marker akan diabaikan oleh AI
 
@@ -88,7 +88,7 @@
 import 'package:flutter/material.dart';
 
 /// Model untuk data Tugas
-/// Digunakan untuk menyimpan informasi tugas dari API atau lokal
+/// Digunakan untuk menyimpan informasi tugas dari SQLite lokal
 class Tugas {
   final int id;
   final String judul;
@@ -112,7 +112,7 @@ class Tugas {
     this.warnaTeksStatus,
   });
 
-  /// Membuat object Tugas dari JSON API
+  /// Membuat object Tugas dari Map SQLite lokal
   factory Tugas.fromJson(Map<String, dynamic> json) {
     return Tugas(
       id: json['id'] ?? 0,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
-import '../../../services/api_service.dart';
+import '../../../services/sqlite_service.dart';
 import '../../../utils/constants.dart';
 
 /// Dashboard utama aplikasi NotezQue
@@ -29,30 +29,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadData() async {
-    final token = ApiService.token;
-    if (token == null) {
+    if (!SQLiteService.isLoggedIn) {
       setState(() {
         _isLoading = false;
-        _error = 'Token tidak ditemukan. Silakan login kembali.';
+        _error = 'Pengguna belum login. Silakan login kembali.';
       });
       return;
     }
 
     try {
       final results = await Future.wait([
-        ApiService.getTasks(token),
-        ApiService.getActivities(token),
-        ApiService.getNotes(token),
+        SQLiteService.getTasks(),
+        SQLiteService.getActivities(),
+        SQLiteService.getNotes(),
       ]);
 
       final tasks = (results[0]['data'] as List?) ?? [];
       final activities = (results[1]['data'] as List?) ?? [];
       final notes = (results[2]['data'] as List?) ?? [];
 
-      final completed = tasks.where((t) => (t['status'] ?? '') == 'completed').length;
+      final completed = tasks
+          .where((t) => (t['status'] ?? '') == 'completed')
+          .length;
       final today = DateTime.now();
-      final todayStr = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      final todayEvents = activities.where((a) => (a['date'] ?? '').toString().startsWith(todayStr)).length;
+      final todayStr =
+          '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+      final todayEvents = activities
+          .where((a) => (a['date'] ?? '').toString().startsWith(todayStr))
+          .length;
 
       setState(() {
         _isLoading = false;
@@ -92,7 +96,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      
+
       // AppBar
       appBar: AppBar(
         toolbarHeight: AppSizes.appBarHeight,
@@ -138,34 +142,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
-                ? Center(child: Text(_error!, textAlign: TextAlign.center))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Selamat datang!",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: AppSizes.spacing),
-                      const Text("Ringkasan aktivitas kamu hari ini"),
-                      const SizedBox(height: 20),
-
-                      // Grid Cards untuk statistik
-                      Expanded(
-                        child: GridView.count(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: AppSizes.cardPadding,
-                          mainAxisSpacing: AppSizes.cardPadding,
-                          children: [
-                            DashboardCard("Total Tugas", _totalTasks.toString(), Icons.task),
-                            DashboardCard("Tugas Selesai", _completedTasks.toString(), Icons.check_circle),
-                            DashboardCard("Jadwal Hari Ini", _todayEvents.toString(), Icons.calendar_today),
-                            DashboardCard("Catatan", _totalNotes.toString(), Icons.description),
-                          ],
-                        ),
-                      ),
-                    ],
+            ? Center(child: Text(_error!, textAlign: TextAlign.center))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Selamat datang!",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: AppSizes.spacing),
+                  const Text("Ringkasan aktivitas kamu hari ini"),
+                  const SizedBox(height: 20),
+
+                  // Grid Cards untuk statistik
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: AppSizes.cardPadding,
+                      mainAxisSpacing: AppSizes.cardPadding,
+                      children: [
+                        DashboardCard(
+                          "Total Tugas",
+                          _totalTasks.toString(),
+                          Icons.task,
+                        ),
+                        DashboardCard(
+                          "Tugas Selesai",
+                          _completedTasks.toString(),
+                          Icons.check_circle,
+                        ),
+                        DashboardCard(
+                          "Jadwal Hari Ini",
+                          _todayEvents.toString(),
+                          Icons.calendar_today,
+                        ),
+                        DashboardCard(
+                          "Catatan",
+                          _totalNotes.toString(),
+                          Icons.description,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
       ),
 
       // Bottom Navigation
@@ -205,7 +225,7 @@ class DashboardCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.cardPadding),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             blurRadius: 6,
             offset: const Offset(0, 4),
           ),

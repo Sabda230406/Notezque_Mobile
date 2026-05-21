@@ -3,7 +3,7 @@ import '../forms/tugas_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
-import '../../../services/api_service.dart';
+import '../../../services/sqlite_service.dart';
 import '../../../models/tugas_model.dart';
 import '../../../widgets/task_card.dart';
 import '../../../widgets/custom_app_bar.dart';
@@ -26,13 +26,15 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
     _fetchTugas();
   }
 
-  /// Mengambil data tugas dari API
+  /// Mengambil data tugas dari SQLite lokal
   Future<void> _fetchTugas() async {
-    final token = ApiService.token;
-    if (token == null) return;
+    if (!SQLiteService.isLoggedIn) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
     try {
-      final response = await ApiService.getTasks(token);
+      final response = await SQLiteService.getTasks();
       if (response.containsKey('data')) {
         final List data = response['data'];
         setState(() {
@@ -42,7 +44,7 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      print("Error fetching tasks: $e");
+      debugPrint("Error fetching tasks: $e");
     }
   }
 
@@ -81,9 +83,9 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
       ),
     );
 
-    if (confirm == true && ApiService.token != null) {
+    if (confirm == true && SQLiteService.isLoggedIn) {
       try {
-        await ApiService.deleteTask(ApiService.token!, id);
+        await SQLiteService.deleteTask(id);
         _fetchTugas();
         if (mounted) {
           _showSnackBar('Tugas berhasil dihapus');
@@ -106,7 +108,10 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (tugas.deskripsi.isNotEmpty) ...[
-              const Text('Deskripsi:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Deskripsi:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 4),
               Text(tugas.deskripsi),
               const SizedBox(height: 12),
@@ -129,21 +134,17 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
 
   /// Toggle status tugas (completed/pending)
   Future<void> _toggleTaskStatus(Tugas tugas) async {
-    if (ApiService.token == null) return;
+    if (!SQLiteService.isLoggedIn) return;
 
     final newStatus = tugas.status == 'completed' ? 'pending' : 'completed';
-    
+
     try {
-      await ApiService.toggleTaskStatus(
-        ApiService.token!,
-        tugas.id,
-        newStatus,
-      );
+      await SQLiteService.toggleTaskStatus(tugas.id, newStatus);
       _fetchTugas();
       if (mounted) {
         _showSnackBar(
-          newStatus == 'completed' 
-              ? 'Tugas ditandai selesai' 
+          newStatus == 'completed'
+              ? 'Tugas ditandai selesai'
               : 'Tugas ditandai belum selesai',
         );
       }
@@ -156,9 +157,9 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -169,31 +170,31 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
         title: AppStrings.listTugas,
         showBackButton: false,
       ),
-      body: _isLoading 
-          ? const Center(child: CircularProgressIndicator()) 
-          : _listTugas.isEmpty 
-              ? const Center(child: Text(AppStrings.belumAdaTugas))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSizes.cardPadding),
-                  child: Column(
-                    children: _listTugas.map((tugas) => 
-                      TaskCard(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _listTugas.isEmpty
+          ? const Center(child: Text(AppStrings.belumAdaTugas))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.cardPadding),
+              child: Column(
+                children: _listTugas
+                    .map(
+                      (tugas) => TaskCard(
                         tugas: tugas,
                         onEdit: () => _showEditDialog(tugas),
                         onDelete: () => _deleteTask(tugas.id),
                         onToggleStatus: () => _toggleTaskStatus(tugas),
                         onTap: () => _showTaskDetail(tugas),
-                      )
-                    ).toList(),
-                  ),
-                ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const TugasForm(),
-            ),
+            MaterialPageRoute(builder: (context) => const TugasForm()),
           ).then((_) => _fetchTugas());
         },
         backgroundColor: AppColors.primary,
@@ -206,7 +207,7 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
-        currentIndex: 1, 
+        currentIndex: 1,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
@@ -215,15 +216,28 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const KalenderScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const KalenderScreen()),
+              );
               break;
             case 1:
               break;
             case 2:
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardScreen(),
+                ),
+              );
               break;
             case 3:
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CatatanListScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CatatanListScreen(),
+                ),
+              );
               break;
           }
         },

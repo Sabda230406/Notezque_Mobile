@@ -15,6 +15,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     // Verify that login page is displayed
-    expect(find.text('NotezQue'), findsWidgets);
+    expect(find.text('NotezQue Login'), findsOneWidget);
+    expect(find.text('Belum punya akun? Register'), findsOneWidget);
   });
 }

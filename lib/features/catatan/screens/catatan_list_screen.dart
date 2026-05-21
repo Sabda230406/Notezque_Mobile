@@ -3,7 +3,7 @@ import '../forms/catatan_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
-import '../../../services/api_service.dart';
+import '../../../services/sqlite_service.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../utils/constants.dart';
 
@@ -25,11 +25,13 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
   }
 
   Future<void> _fetchCatatan() async {
-    final token = ApiService.token;
-    if (token == null) return;
+    if (!SQLiteService.isLoggedIn) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
     try {
-      final response = await ApiService.getNotes(token);
+      final response = await SQLiteService.getNotes();
       if (response.containsKey('data')) {
         setState(() {
           _catatanList = response['data'];
@@ -38,7 +40,7 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      print("Error fetching notes: $e");
+      debugPrint("Error fetching notes: $e");
     }
   }
 
@@ -46,9 +48,7 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
   void _tambahCatatan() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const CatatanForm(),
-      ),
+      MaterialPageRoute(builder: (context) => const CatatanForm()),
     ).then((_) => _fetchCatatan());
   }
 
@@ -72,9 +72,9 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
       ),
     );
 
-    if (confirm == true && ApiService.token != null) {
+    if (confirm == true && SQLiteService.isLoggedIn) {
       try {
-        await ApiService.deleteNote(ApiService.token!, id);
+        await SQLiteService.deleteNote(id);
         _fetchCatatan();
         if (mounted) {
           _showSnackBar('Catatan berhasil dihapus');
@@ -89,9 +89,9 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Edit catatan
@@ -123,15 +123,22 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if ((catatan['content'] ?? '').toString().isNotEmpty) ...[
-                const Text('Isi:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Isi:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 4),
                 Text(catatan['content']),
                 const SizedBox(height: 12),
               ],
               if (catatan['created_at'] != null)
-                Text('Dibuat: ${DateTimeHelper.formatDate(catatan['created_at'])}'),
+                Text(
+                  'Dibuat: ${DateTimeHelper.formatDate(catatan['created_at'])}',
+                ),
               if (catatan['updated_at'] != null)
-                Text('Diubah: ${DateTimeHelper.formatDate(catatan['updated_at'])}'),
+                Text(
+                  'Diubah: ${DateTimeHelper.formatDate(catatan['updated_at'])}',
+                ),
             ],
           ),
         ),
@@ -148,10 +155,7 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'List Catatan',
-        showBackButton: false,
-      ),
+      appBar: const CustomAppBar(title: 'List Catatan', showBackButton: false),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahCatatan,
         backgroundColor: AppColors.primary,
@@ -160,42 +164,42 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _catatanList.isEmpty
-              ? const Center(
-                  child: Text('Belum ada catatan', style: TextStyle(fontSize: 16)),
-                )
-              : ListView.builder(
-                  itemCount: _catatanList.length,
-                  itemBuilder: (context, index) {
-                    final catatan = _catatanList[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ListTile(
-                        title: Text(
-                          catatan['title'] ?? 'No Title',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+          ? const Center(
+              child: Text('Belum ada catatan', style: TextStyle(fontSize: 16)),
+            )
+          : ListView.builder(
+              itemCount: _catatanList.length,
+              itemBuilder: (context, index) {
+                final catatan = _catatanList[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      catatan['title'] ?? 'No Title',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(catatan['content'] ?? ''),
+                    onTap: () => _showCatatanDetail(catatan),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editCatatan(catatan),
                         ),
-                        subtitle: Text(catatan['content'] ?? ''),
-                        onTap: () => _showCatatanDetail(catatan),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _editCatatan(catatan),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _hapusCatatan(catatan['id']),
-                            ),
-                          ],
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _hapusCatatan(catatan['id']),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
@@ -203,7 +207,7 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
-        currentIndex: 3, 
+        currentIndex: 3,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
@@ -217,7 +221,7 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 MaterialPageRoute(builder: (context) => const KalenderScreen()),
               );
               break;
-            case 1: // Tugas 
+            case 1: // Tugas
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
