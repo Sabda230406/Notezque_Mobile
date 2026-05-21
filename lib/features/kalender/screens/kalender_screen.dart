@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/acara_form.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
@@ -16,14 +17,48 @@ class KalenderScreen extends StatefulWidget {
 }
 
 class _KalenderScreenState extends State<KalenderScreen> {
+  static const String _eventFilterKey = 'calendar_event_filter';
+  static const String _reminderEnabledKey = 'calendar_reminder_enabled';
+
   DateTime selectedDate = DateTime.now();
   List<dynamic> events = [];
   bool isLoading = true;
+  String _eventFilter = 'today';
+  bool _reminderEnabled = false;
+  bool _isCalendarExpanded = false;
 
   @override
   void initState() {
     super.initState();
+    _loadPreferences();
     _fetchEvents();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('calendar_selected_view');
+    if (!mounted) return;
+
+    setState(() {
+      _eventFilter = prefs.getString(_eventFilterKey) ?? 'today';
+      _reminderEnabled = prefs.getBool(_reminderEnabledKey) ?? false;
+    });
+  }
+
+  Future<void> _saveEventFilter(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_eventFilterKey, value);
+    if (!mounted) return;
+
+    setState(() => _eventFilter = value);
+  }
+
+  Future<void> _saveReminderEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_reminderEnabledKey, value);
+    if (!mounted) return;
+
+    setState(() => _reminderEnabled = value);
   }
 
   Future<void> _fetchEvents() async {
@@ -121,19 +156,26 @@ class _KalenderScreenState extends State<KalenderScreen> {
   Widget _buildEventList() {
     if (isLoading) return const Center(child: CircularProgressIndicator());
 
-    if (events.isEmpty) {
-      return const Center(
-        child: Text(
-          "Belum ada acara",
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+    final visibleEvents = _visibleEvents;
+
+    if (visibleEvents.isEmpty) {
+      return const SizedBox(
+        height: 96,
+        child: Center(
+          child: Text(
+            "Belum ada acara",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
         ),
       );
     }
 
     return ListView.builder(
-      itemCount: events.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: visibleEvents.length,
       itemBuilder: (context, i) {
-        final e = events[i];
+        final e = visibleEvents[i];
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
           child: ListTile(
@@ -176,6 +218,130 @@ class _KalenderScreenState extends State<KalenderScreen> {
     );
   }
 
+  List<dynamic> get _visibleEvents {
+    return events.where((event) {
+      final date = _parseEventDate(event['date']);
+      if (date == null) return false;
+
+      final eventDay = DateTime(date.year, date.month, date.day);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      switch (_eventFilter) {
+        case 'past':
+          return eventDay.isBefore(today);
+        case 'upcoming':
+          return eventDay.isAfter(today);
+        case 'today':
+        default:
+          return _isSameDay(eventDay, today);
+      }
+    }).toList();
+  }
+
+  DateTime? _parseEventDate(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
+  }
+
+  bool _isSameDay(DateTime left, DateTime right) {
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
+  }
+
+  Widget _buildPreferenceControls() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          DropdownButtonFormField<String>(
+            key: ValueKey(_eventFilter),
+            initialValue: _eventFilter,
+            decoration: InputDecoration(
+              labelText: 'Filter acara',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'past', child: Text('Yang lalu')),
+              DropdownMenuItem(value: 'today', child: Text('Hari ini')),
+              DropdownMenuItem(
+                value: 'upcoming',
+                child: Text('Yang akan datang'),
+              ),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                _saveEventFilter(value);
+              }
+            },
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Reminder acara'),
+            value: _reminderEnabled,
+            onChanged: _saveReminderEnabled,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarPanel() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Column(
+        children: [
+          Material(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              leading: const Icon(
+                Icons.calendar_today,
+                color: AppColors.primary,
+              ),
+              title: const Text('Kalender'),
+              subtitle: Text(
+                DateTimeHelper.formatDate(selectedDate.toString()),
+              ),
+              trailing: IconButton(
+                icon: Icon(
+                  _isCalendarExpanded ? Icons.expand_less : Icons.expand_more,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isCalendarExpanded = !_isCalendarExpanded;
+                  });
+                },
+              ),
+              onTap: () {
+                setState(() {
+                  _isCalendarExpanded = !_isCalendarExpanded;
+                });
+              },
+            ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: CalendarDatePicker(
+              initialDate: selectedDate,
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2030),
+              onDateChanged: (d) => setState(() => selectedDate = d),
+            ),
+            crossFadeState: _isCalendarExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,20 +351,16 @@ class _KalenderScreenState extends State<KalenderScreen> {
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: AppColors.white),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: CalendarDatePicker(
-              initialDate: selectedDate,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-              onDateChanged: (d) => setState(() => selectedDate = d),
-            ),
-          ),
-          const Divider(),
-          Expanded(child: _buildEventList()),
-        ],
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 96),
+          children: [
+            _buildCalendarPanel(),
+            _buildPreferenceControls(),
+            const Divider(),
+            _buildEventList(),
+          ],
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,

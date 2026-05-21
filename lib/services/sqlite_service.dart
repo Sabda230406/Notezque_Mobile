@@ -1,7 +1,11 @@
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class SQLiteService {
+  static const String _loginUserIdKey = 'login_user_id';
+  static const String _lastLoginEmailKey = 'login_last_email';
+
   static int? _currentUserId;
   static Database? _database;
 
@@ -103,6 +107,39 @@ class SQLiteService {
     return Map<String, dynamic>.from(rows.first);
   }
 
+  static Future<bool> restoreLoginSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt(_loginUserIdKey);
+    if (userId == null) return false;
+
+    final db = await _db;
+    final users = await db.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (users.isEmpty) {
+      await prefs.remove(_loginUserIdKey);
+      return false;
+    }
+
+    _currentUserId = userId;
+    return true;
+  }
+
+  static Future<String> getLastLoginEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastLoginEmailKey) ?? '';
+  }
+
+  static Future<void> _saveLoginSession(int userId, String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_loginUserIdKey, userId);
+    await prefs.setString(_lastLoginEmailKey, email);
+  }
+
   static Future<Map<String, dynamic>> login(
     String email,
     String password,
@@ -134,6 +171,7 @@ class SQLiteService {
 
       final userId = user['id'] as int;
       _currentUserId = userId;
+      await _saveLoginSession(userId, trimmedEmail);
 
       return {
         'success': true,
@@ -170,6 +208,7 @@ class SQLiteService {
       });
 
       _currentUserId = userId;
+      await _saveLoginSession(userId, trimmedEmail);
 
       return {
         'success': true,
@@ -187,6 +226,8 @@ class SQLiteService {
 
   static Future<Map<String, dynamic>> logout() async {
     _currentUserId = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_loginUserIdKey);
     return {'message': 'Logout berhasil'};
   }
 

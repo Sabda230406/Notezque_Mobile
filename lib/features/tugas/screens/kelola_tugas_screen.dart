@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/tugas_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
@@ -17,13 +18,45 @@ class KelolaTugasScreen extends StatefulWidget {
 }
 
 class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
+  static const String _statusFilterKey = 'tasks_filter_status';
+  static const String _priorityFilterKey = 'tasks_filter_priority';
+
   List<Tugas> _listTugas = [];
   bool _isLoading = true;
+  String _statusFilter = 'all';
+  String _priorityFilter = 'all';
 
   @override
   void initState() {
     super.initState();
+    _loadPreferences();
     _fetchTugas();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _statusFilter = prefs.getString(_statusFilterKey) ?? 'all';
+      _priorityFilter = prefs.getString(_priorityFilterKey) ?? 'all';
+    });
+  }
+
+  Future<void> _saveStatusFilter(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_statusFilterKey, value);
+    if (!mounted) return;
+
+    setState(() => _statusFilter = value);
+  }
+
+  Future<void> _savePriorityFilter(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_priorityFilterKey, value);
+    if (!mounted) return;
+
+    setState(() => _priorityFilter = value);
   }
 
   /// Mengambil data tugas dari SQLite lokal
@@ -162,6 +195,71 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  List<Tugas> get _visibleTasks {
+    return _listTugas.where((tugas) {
+      final statusMatches =
+          _statusFilter == 'all' || tugas.status == _statusFilter;
+      final priorityMatches =
+          _priorityFilter == 'all' || tugas.prioritas == _priorityFilter;
+
+      return statusMatches && priorityMatches;
+    }).toList();
+  }
+
+  Widget _buildPreferenceControls() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: _statusFilter,
+              decoration: InputDecoration(
+                labelText: 'Status',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'all', child: Text('Semua')),
+                DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                DropdownMenuItem(value: 'completed', child: Text('Selesai')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  _saveStatusFilter(value);
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: _priorityFilter,
+              decoration: InputDecoration(
+                labelText: 'Prioritas',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'all', child: Text('Semua')),
+                DropdownMenuItem(value: 'low', child: Text('Rendah')),
+                DropdownMenuItem(value: 'medium', child: Text('Sedang')),
+                DropdownMenuItem(value: 'high', child: Text('Tinggi')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  _savePriorityFilter(value);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,23 +270,31 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _listTugas.isEmpty
-          ? const Center(child: Text(AppStrings.belumAdaTugas))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSizes.cardPadding),
-              child: Column(
-                children: _listTugas
-                    .map(
-                      (tugas) => TaskCard(
-                        tugas: tugas,
-                        onEdit: () => _showEditDialog(tugas),
-                        onDelete: () => _deleteTask(tugas.id),
-                        onToggleStatus: () => _toggleTaskStatus(tugas),
-                        onTap: () => _showTaskDetail(tugas),
-                      ),
-                    )
-                    .toList(),
-              ),
+          : Column(
+              children: [
+                _buildPreferenceControls(),
+                Expanded(
+                  child: _visibleTasks.isEmpty
+                      ? const Center(child: Text(AppStrings.belumAdaTugas))
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.all(AppSizes.cardPadding),
+                          child: Column(
+                            children: _visibleTasks
+                                .map(
+                                  (tugas) => TaskCard(
+                                    tugas: tugas,
+                                    onEdit: () => _showEditDialog(tugas),
+                                    onDelete: () => _deleteTask(tugas.id),
+                                    onToggleStatus: () =>
+                                        _toggleTaskStatus(tugas),
+                                    onTap: () => _showTaskDetail(tugas),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                ),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

@@ -91,8 +91,10 @@ import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/dashboard/screens/dashboard_screen.dart';
+import 'services/sqlite_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (kIsWeb) {
@@ -103,11 +105,16 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   }
 
-  runApp(const MyApp());
+  final isLoggedIn = await SQLiteService.restoreLoginSession();
+
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, this.isLoggedIn = false});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -117,7 +124,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: isLoggedIn ? const DashboardScreen() : const LoginScreen(),
     );
   }
 }

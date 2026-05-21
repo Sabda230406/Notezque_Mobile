@@ -17,6 +17,19 @@ class _LoginScreenState extends State<LoginScreen> {
   String _errorMessage = '';
 
   @override
+  void initState() {
+    super.initState();
+    _loadLastLoginEmail();
+  }
+
+  Future<void> _loadLastLoginEmail() async {
+    final email = await SQLiteService.getLastLoginEmail();
+    if (!mounted) return;
+
+    _emailController.text = email;
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/catatan_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
@@ -15,13 +16,51 @@ class CatatanListScreen extends StatefulWidget {
 }
 
 class _CatatanListScreenState extends State<CatatanListScreen> {
+  static const String _sortOrderKey = 'notes_sort_order';
+  static const String _lastSearchKey = 'notes_last_search';
+
+  final TextEditingController _searchController = TextEditingController();
   List<dynamic> _catatanList = [];
   bool _isLoading = true;
+  String _sortOrder = 'newest';
 
   @override
   void initState() {
     super.initState();
+    _loadPreferences();
     _fetchCatatan();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _sortOrder = prefs.getString(_sortOrderKey) ?? 'newest';
+      _searchController.text = prefs.getString(_lastSearchKey) ?? '';
+    });
+  }
+
+  Future<void> _saveSortOrder(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sortOrderKey, value);
+    if (!mounted) return;
+
+    setState(() => _sortOrder = value);
+  }
+
+  Future<void> _saveLastSearch(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastSearchKey, value);
+    if (!mounted) return;
+
+    setState(() {});
   }
 
   Future<void> _fetchCatatan() async {
@@ -152,6 +191,78 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
     );
   }
 
+  List<dynamic> get _visibleCatatanList {
+    final query = _searchController.text.trim().toLowerCase();
+    final filtered = _catatanList.where((catatan) {
+      if (query.isEmpty) return true;
+
+      final title = (catatan['title'] ?? '').toString().toLowerCase();
+      final content = (catatan['content'] ?? '').toString().toLowerCase();
+      return title.contains(query) || content.contains(query);
+    }).toList();
+
+    filtered.sort((left, right) {
+      switch (_sortOrder) {
+        case 'oldest':
+          return (left['created_at'] ?? '').toString().compareTo(
+            (right['created_at'] ?? '').toString(),
+          );
+        case 'title':
+          return (left['title'] ?? '').toString().toLowerCase().compareTo(
+            (right['title'] ?? '').toString().toLowerCase(),
+          );
+        case 'newest':
+        default:
+          return (right['created_at'] ?? '').toString().compareTo(
+            (left['created_at'] ?? '').toString(),
+          );
+      }
+    });
+
+    return filtered;
+  }
+
+  Widget _buildPreferenceControls() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            onChanged: _saveLastSearch,
+            decoration: InputDecoration(
+              labelText: 'Cari catatan',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.search),
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _sortOrder,
+            decoration: InputDecoration(
+              labelText: 'Urutkan catatan',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'newest', child: Text('Terbaru')),
+              DropdownMenuItem(value: 'oldest', child: Text('Terlama')),
+              DropdownMenuItem(value: 'title', child: Text('Judul')),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                _saveSortOrder(value);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,42 +274,61 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _catatanList.isEmpty
-          ? const Center(
-              child: Text('Belum ada catatan', style: TextStyle(fontSize: 16)),
-            )
-          : ListView.builder(
-              itemCount: _catatanList.length,
-              itemBuilder: (context, index) {
-                final catatan = _catatanList[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      catatan['title'] ?? 'No Title',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(catatan['content'] ?? ''),
-                    onTap: () => _showCatatanDetail(catatan),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editCatatan(catatan),
+          : Column(
+              children: [
+                _buildPreferenceControls(),
+                Expanded(
+                  child: _visibleCatatanList.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'Belum ada catatan',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _visibleCatatanList.length,
+                          itemBuilder: (context, index) {
+                            final catatan = _visibleCatatanList[index];
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: ListTile(
+                                title: Text(
+                                  catatan['title'] ?? 'No Title',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(catatan['content'] ?? ''),
+                                onTap: () => _showCatatanDetail(catatan),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () => _editCatatan(catatan),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () =>
+                                          _hapusCatatan(catatan['id']),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _hapusCatatan(catatan['id']),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                ),
+              ],
             ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
