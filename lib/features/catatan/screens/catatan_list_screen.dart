@@ -335,9 +335,10 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
-        currentIndex: 3,
+        currentIndex: 4,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
@@ -367,7 +368,9 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 ),
               );
               break;
-            case 3: // Catatan (Current)
+            case 3: // Folder (belum dibuat)
+              break;
+            case 4: // Catatan (Current)
               break;
           }
         },

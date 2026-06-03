@@ -390,6 +390,8 @@ class _KalenderScreenState extends State<KalenderScreen> {
               );
               break;
             case 3:
+              break;
+            case 4:
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -403,6 +405,7 @@ class _KalenderScreenState extends State<KalenderScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
       ),
