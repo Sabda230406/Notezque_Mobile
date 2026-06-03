@@ -345,7 +345,11 @@ class _KalenderScreenState extends State<KalenderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: "List Acara", showBackButton: false),
+      appBar: const CustomAppBar(
+        title: "List Acara",
+        showBackButton: false,
+        showLogoutButton: true,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addEvent,
         backgroundColor: AppColors.primary,
