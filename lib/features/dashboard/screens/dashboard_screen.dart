@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../materi/screens/materi_explorer_screen.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
@@ -79,7 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const KalenderScreen(),
       const KelolaTugasScreen(),
       null, // Home (tidak pindah)
-      null, // Folder (belum dibuat)
+      const MateriExplorerScreen(),
       const CatatanListScreen(),
     ];
 

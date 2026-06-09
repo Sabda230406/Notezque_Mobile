@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../materi/screens/materi_explorer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/catatan_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
@@ -368,7 +369,13 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 ),
               );
               break;
-            case 3: // Folder (belum dibuat)
+            case 3: // Folder
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MateriExplorerScreen(),
+                ),
+              );
               break;
             case 4: // Catatan (Current)
               break;
