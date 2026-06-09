@@ -19,10 +19,11 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
   bool _isLoading = true;
   List<MateriFolder> _folders = [];
   List<MateriFile> _files = [];
-  
+
   final List<MateriFolder> _breadcrumb = [];
 
-  int? get currentFolderId => _breadcrumb.isNotEmpty ? _breadcrumb.last.id : null;
+  int? get currentFolderId =>
+      _breadcrumb.isNotEmpty ? _breadcrumb.last.id : null;
 
   @override
   void initState() {
@@ -38,7 +39,9 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final foldersData = await SQLiteService.getFolders(parentId: currentFolderId);
+      final foldersData = await SQLiteService.getFolders(
+        parentId: currentFolderId,
+      );
       final filesData = await SQLiteService.getFiles(currentFolderId);
 
       setState(() {
@@ -49,7 +52,9 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -95,7 +100,7 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
 
   Future<void> _showCreateFolderDialog() async {
     final titleController = TextEditingController();
-    
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -130,7 +135,7 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         allowMultiple: false,
         withReadStream: false,
         withData: false,
@@ -138,7 +143,7 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        
+
         if (file.size > 10 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -159,7 +164,9 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
       }
     }
   }
@@ -169,10 +176,18 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus Folder'),
-        content: const Text('Apakah Anda yakin? Semua isinya juga akan terhapus.'),
+        content: const Text(
+          'Apakah Anda yakin? Semua isinya juga akan terhapus.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
         ],
       ),
     );
@@ -190,8 +205,14 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
         title: const Text('Hapus File'),
         content: const Text('Apakah Anda yakin?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
         ],
       ),
     );
@@ -219,7 +240,10 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Materi & File', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Materi & File',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppColors.primary,
         automaticallyImplyLeading: false,
         actions: [
@@ -249,7 +273,13 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
                       children: [
                         Icon(Icons.home, size: 20, color: AppColors.primary),
                         SizedBox(width: 4),
-                        Text('Root', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                        Text(
+                          'Root',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -258,14 +288,22 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
                     final folder = entry.value;
                     return Row(
                       children: [
-                        const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 20,
+                          color: Colors.grey,
+                        ),
                         InkWell(
                           onTap: () => _navigateToBreadcrumb(index),
                           child: Text(
                             folder.name,
                             style: TextStyle(
-                              fontWeight: index == _breadcrumb.length - 1 ? FontWeight.bold : FontWeight.normal,
-                              color: index == _breadcrumb.length - 1 ? Colors.black : AppColors.primary,
+                              fontWeight: index == _breadcrumb.length - 1
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: index == _breadcrumb.length - 1
+                                  ? Colors.black
+                                  : AppColors.primary,
                             ),
                           ),
                         ),
@@ -276,42 +314,66 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
               ),
             ),
           ),
-          
+
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : (_folders.isEmpty && _files.isEmpty)
-                    ? const Center(child: Text('Folder kosong'))
-                    : ListView(
-                        padding: const EdgeInsets.all(8),
-                        children: [
-                          ..._folders.map((folder) => Card(
-                            elevation: 1,
-                            child: ListTile(
-                              leading: const Icon(Icons.folder, color: Colors.amber, size: 40),
-                              title: Text(folder.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: const Text('Folder'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteFolder(folder.id),
-                              ),
-                              onTap: () => _openFolder(folder),
+                ? const Center(child: Text('Folder kosong'))
+                : ListView(
+                    padding: const EdgeInsets.all(8),
+                    children: [
+                      ..._folders.map(
+                        (folder) => Card(
+                          elevation: 1,
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.folder,
+                              color: Colors.amber,
+                              size: 40,
                             ),
-                          )),
-                          ..._files.map((file) => Card(
-                            elevation: 1,
-                            child: ListTile(
-                              leading: const Icon(Icons.insert_drive_file, color: AppColors.primary, size: 40),
-                              title: Text(file.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('${_formatBytes(file.size)} • ${file.type.toUpperCase()}'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteFile(file.id),
+                            title: Text(
+                              folder.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          )),
-                        ],
+                            subtitle: const Text('Folder'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteFolder(folder.id),
+                            ),
+                            onTap: () => _openFolder(folder),
+                          ),
+                        ),
                       ),
+                      ..._files.map(
+                        (file) => Card(
+                          elevation: 1,
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.insert_drive_file,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                            title: Text(
+                              file.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${_formatBytes(file.size)} • ${file.type.toUpperCase()}',
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteFile(file.id),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),

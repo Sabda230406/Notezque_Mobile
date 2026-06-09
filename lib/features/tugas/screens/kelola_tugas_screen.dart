@@ -329,8 +329,6 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
               );
               break;
             case 3:
-              break;
-            case 4:
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(

@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:shared_preferences/shared_preferences.dart';
-=======
 import '../../materi/screens/materi_explorer_screen.dart';
->>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../utils/constants.dart';
-<<<<<<< HEAD
-import '../../../widgets/progress_ring_card.dart';
-=======
 import '../../../widgets/custom_app_bar.dart';
->>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
+import '../../../widgets/progress_ring_card.dart';
 
 /// Dashboard utama aplikasi NotezQue
 /// Menampilkan ringkasan aktivitas pengguna

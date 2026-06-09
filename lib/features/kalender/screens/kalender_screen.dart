@@ -386,8 +386,6 @@ class _KalenderScreenState extends State<KalenderScreen> {
               );
               break;
             case 3:
-              break;
-            case 4:
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(

@@ -338,9 +338,6 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 ),
               );
               break;
-<<<<<<< HEAD
-            case 3: // Folder (belum dibuat)
-=======
             case 3: // Folder
               Navigator.pushReplacement(
                 context,
@@ -348,7 +345,6 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                   builder: (context) => const MateriExplorerScreen(),
                 ),
               );
->>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
               break;
             case 4: // Catatan (Current)
               break;
