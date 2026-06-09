@@ -84,6 +84,8 @@
 // ════════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import '../features/auth/screens/login_screen.dart';
+import '../services/sqlite_service.dart';
 import '../utils/constants.dart';
 
 /// Custom AppBar yang digunakan di seluruh aplikasi
@@ -91,15 +93,60 @@ import '../utils/constants.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
+  final bool showLogoutButton;
+  final List<Widget> actions;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.showBackButton = false,
+    this.showLogoutButton = false,
+    this.actions = const [],
   });
+
+  Future<void> _logout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Apakah Anda yakin ingin logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(AppStrings.batal),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout != true) return;
+
+    await SQLiteService.logout();
+    if (!context.mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final appBarActions = <Widget>[
+      ...actions,
+      if (showLogoutButton)
+        IconButton(
+          tooltip: 'Logout',
+          icon: const Icon(Icons.logout, color: AppColors.white),
+          onPressed: () => _logout(context),
+        ),
+    ];
+
     return AppBar(
       automaticallyImplyLeading: showBackButton,
       title: Row(
@@ -140,6 +187,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           bottom: Radius.circular(AppSizes.borderRadius),
         ),
       ),
+      actions: appBarActions.isEmpty
+          ? null
+          : [...appBarActions, const SizedBox(width: 8)],
     );
   }
 

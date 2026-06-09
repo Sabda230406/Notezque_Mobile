@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:shared_preferences/shared_preferences.dart';
+=======
+import '../../materi/screens/materi_explorer_screen.dart';
+>>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../utils/constants.dart';
+<<<<<<< HEAD
 import '../../../widgets/progress_ring_card.dart';
+=======
+import '../../../widgets/custom_app_bar.dart';
+>>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
 
 /// Dashboard utama aplikasi NotezQue
 /// Menampilkan ringkasan aktivitas pengguna
@@ -113,7 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const KalenderScreen(),
       const KelolaTugasScreen(),
       null, // Home (tidak pindah)
-      null, // Folder (belum dibuat)
+      const MateriExplorerScreen(),
       const CatatanListScreen(),
     ];
 
@@ -131,38 +139,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
 
-      // AppBar
-      appBar: AppBar(
-        toolbarHeight: AppSizes.appBarHeight,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            SizedBox(
-              width: AppSizes.logoSize,
-              height: AppSizes.logoSize,
-              child: Image.asset(
-                'assets/image/logoNotezQue.png',
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.task_alt, color: AppColors.primary),
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              "Dashboard",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.primary,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(AppSizes.borderRadius),
-          ),
-        ),
-        actions: const [
+      appBar: const CustomAppBar(
+        title: 'Dashboard',
+        showLogoutButton: true,
+        actions: [
           Icon(Icons.notifications, color: AppColors.white),
           SizedBox(width: 10),
           Icon(Icons.person, color: AppColors.white),

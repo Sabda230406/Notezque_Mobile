@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../materi/screens/materi_explorer_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/acara_form.dart';
@@ -336,7 +337,11 @@ class _KalenderScreenState extends State<KalenderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: "List Acara", showBackButton: false),
+      appBar: const CustomAppBar(
+        title: "List Acara",
+        showBackButton: false,
+        showLogoutButton: true,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addEvent,
         backgroundColor: AppColors.primary,
@@ -381,6 +386,14 @@ class _KalenderScreenState extends State<KalenderScreen> {
               );
               break;
             case 3:
+              break;
+            case 4:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MateriExplorerScreen(),
+                ),
+              );
               break;
             case 4:
               Navigator.pushReplacement(

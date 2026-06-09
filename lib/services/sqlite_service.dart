@@ -19,8 +19,14 @@ class SQLiteService {
 
     _database = await openDatabase(
       fullPath,
-      version: 1,
+      version: 2,
       onCreate: _createTables,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('CREATE TABLE IF NOT EXISTS materi_folders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, parent_id INTEGER, name TEXT NOT NULL, color TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (parent_id) REFERENCES materi_folders (id) ON DELETE CASCADE)');
+          await db.execute('CREATE TABLE IF NOT EXISTS materi_files (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, folder_id INTEGER, name TEXT NOT NULL, size INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL, path TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (folder_id) REFERENCES materi_folders (id) ON DELETE CASCADE)');
+        }
+      },
     );
 
     return _database!;
@@ -74,6 +80,8 @@ class SQLiteService {
         updated_at TEXT NOT NULL
       )
     ''');
+    await db.execute('CREATE TABLE IF NOT EXISTS materi_folders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, parent_id INTEGER, name TEXT NOT NULL, color TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (parent_id) REFERENCES materi_folders (id) ON DELETE CASCADE)');
+    await db.execute('CREATE TABLE IF NOT EXISTS materi_files (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, folder_id INTEGER, name TEXT NOT NULL, size INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL, path TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (folder_id) REFERENCES materi_folders (id) ON DELETE CASCADE)');
   }
 
   static String get _now => DateTime.now().toIso8601String();
@@ -501,5 +509,73 @@ class SQLiteService {
     } catch (e) {
       return {'message': 'Error: $e'};
     }
+  }
+
+  // --- MATERI FOLDERS ---
+  static Future<List<Map<String, dynamic>>> getFolders({int? parentId}) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    List<Map<String, Object?>> rows;
+    if (parentId == null) {
+      rows = await db.query('materi_folders', where: 'user_id = ? AND parent_id IS NULL', whereArgs: [userId], orderBy: 'name ASC');
+    } else {
+      rows = await db.query('materi_folders', where: 'user_id = ? AND parent_id = ?', whereArgs: [userId, parentId], orderBy: 'name ASC');
+    }
+    return _rows(rows);
+  }
+
+  static Future<Map<String, dynamic>> createFolder(String name, {int? parentId, String? color}) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    final id = await db.insert('materi_folders', {'user_id': userId, 'parent_id': parentId, 'name': name, 'color': color, 'created_at': _now, 'updated_at': _now});
+    return {'success': true, 'id': id};
+  }
+
+  static Future<Map<String, dynamic>> updateFolder(int id, String name, {String? color}) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    await db.update('materi_folders', {'name': name, if (color != null) 'color': color, 'updated_at': _now}, where: 'id = ? AND user_id = ?', whereArgs: [id, userId]);
+    return {'success': true};
+  }
+
+  static Future<Map<String, dynamic>> deleteFolder(int id) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    await db.delete('materi_folders', where: 'id = ? AND user_id = ?', whereArgs: [id, userId]);
+    return {'success': true};
+  }
+
+  // --- MATERI FILES ---
+  static Future<List<Map<String, dynamic>>> getFiles(int? folderId) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    List<Map<String, Object?>> rows;
+    if (folderId == null) {
+      rows = await db.query('materi_files', where: 'user_id = ? AND folder_id IS NULL', whereArgs: [userId], orderBy: 'name ASC');
+    } else {
+      rows = await db.query('materi_files', where: 'user_id = ? AND folder_id = ?', whereArgs: [userId, folderId], orderBy: 'name ASC');
+    }
+    return _rows(rows);
+  }
+
+  static Future<Map<String, dynamic>> createFile(String name, int size, String type, String filePath, {int? folderId}) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    final id = await db.insert('materi_files', {'user_id': userId, 'folder_id': folderId, 'name': name, 'size': size, 'type': type, 'path': filePath, 'created_at': _now, 'updated_at': _now});
+    return {'success': true, 'id': id};
+  }
+
+  static Future<Map<String, dynamic>> renameFile(int id, String name) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    await db.update('materi_files', {'name': name, 'updated_at': _now}, where: 'id = ? AND user_id = ?', whereArgs: [id, userId]);
+    return {'success': true};
+  }
+
+  static Future<Map<String, dynamic>> deleteFile(int id) async {
+    final userId = _currentUserId!;
+    final db = await _db;
+    await db.delete('materi_files', where: 'id = ? AND user_id = ?', whereArgs: [id, userId]);
+    return {'success': true};
   }
 }

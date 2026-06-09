@@ -36,8 +36,14 @@ dependencies:
   sqflite_common_ffi: ^2.3.7+1
   sqflite_common_ffi_web: ^1.0.2
   shared_preferences: ^2.5.5
+<<<<<<< HEAD
   intl: ^0.20.2
   google_fonts: ^6.2.1
+=======
+  file_picker: ^11.0.2
+  path_provider: ^2.1.5
+  open_filex: ^4.7.0
+>>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
 
 dev_dependencies:
   flutter_test:

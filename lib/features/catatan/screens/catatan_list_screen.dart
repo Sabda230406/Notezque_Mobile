@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../materi/screens/materi_explorer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/catatan_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
@@ -260,7 +261,11 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'List Catatan', showBackButton: false),
+      appBar: const CustomAppBar(
+        title: 'List Catatan',
+        showBackButton: false,
+        showLogoutButton: true,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahCatatan,
         backgroundColor: AppColors.primary,
@@ -333,7 +338,17 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 ),
               );
               break;
+<<<<<<< HEAD
             case 3: // Folder (belum dibuat)
+=======
+            case 3: // Folder
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MateriExplorerScreen(),
+                ),
+              );
+>>>>>>> 5be0cffe97f98b9f25f481b754aa14f99fc44ac8
               break;
             case 4: // Catatan (Current)
               break;

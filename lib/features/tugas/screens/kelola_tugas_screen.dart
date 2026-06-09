@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../materi/screens/materi_explorer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/tugas_form.dart';
 import '../../kalender/screens/kalender_screen.dart';
@@ -251,6 +252,7 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
       appBar: const CustomAppBar(
         title: AppStrings.listTugas,
         showBackButton: false,
+        showLogoutButton: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -327,6 +329,14 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
               );
               break;
             case 3:
+              break;
+            case 4:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MateriExplorerScreen(),
+                ),
+              );
               break;
             case 4:
               Navigator.pushReplacement(
