@@ -77,6 +77,7 @@
 // ════════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 /// Constants untuk warna yang digunakan di seluruh aplikasi
 class AppColors {
@@ -84,12 +85,12 @@ class AppColors {
   static const Color primary = Colors.blue;
   static const Color background = Color(0xFFE3F2FD);
   static const Color white = Colors.white;
-  
+
   // Warna Status Tugas
   static const Color statusTerlambat = Color(0xFFFFE0E0);
   static const Color statusHatiHati = Color(0xFFFFF9C4);
   static const Color statusBaru = Color(0xFFE8F5E9);
-  
+
   static const Color teksStatusTerlambat = Colors.red;
   static const Color teksStatusHatiHati = Colors.orange;
   static const Color teksStatusBaru = Colors.green;
@@ -117,15 +118,17 @@ class AppStrings {
 
 /// Helper functions untuk format tanggal dan waktu
 class DateTimeHelper {
+  static final DateFormat _dateFormat = DateFormat('d MMM yyyy');
+
   /// Format tanggal dari berbagai format string menjadi DD Bulan YYYY
   /// Contoh: 2025-12-23, 2025-12-23T00:00:00.000000Z -> 23 Des 2025
   static String formatDate(String dateStr) {
     if (dateStr.isEmpty) return '-';
-    
+
     try {
       // Parse string ke DateTime
       DateTime date;
-      
+
       // Handle berbagai format
       if (dateStr.contains('T')) {
         // Format ISO 8601: 2025-12-23T00:00:00.000000Z
@@ -137,23 +140,18 @@ class DateTimeHelper {
         // Format: 2025-12-23
         date = DateTime.parse(dateStr);
       }
-      
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
-      ];
-      
-      return '${date.day} ${months[date.month - 1]} ${date.year}';
+
+      return _dateFormat.format(date);
     } catch (e) {
       return dateStr;
     }
   }
-  
+
   /// Format waktu dari string HH:mm:ss menjadi HH:mm
   /// Contoh: 14:30:00 -> 14:30
   static String formatTime(String timeStr) {
     if (timeStr.isEmpty) return '-';
-    
+
     try {
       // Ambil hanya HH:mm
       final parts = timeStr.split(':');

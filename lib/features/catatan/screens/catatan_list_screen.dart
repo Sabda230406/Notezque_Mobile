@@ -6,6 +6,9 @@ import '../../dashboard/screens/dashboard_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/filter_dropdown_card.dart';
+import '../../../widgets/note_preview_card.dart';
 import '../../../utils/constants.dart';
 
 class CatatanListScreen extends StatefulWidget {
@@ -239,24 +242,15 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _sortOrder,
-            decoration: InputDecoration(
-              labelText: 'Urutkan catatan',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+          FilterDropdownCard(
+            label: 'Urutkan catatan',
+            value: _sortOrder,
             items: const [
               DropdownMenuItem(value: 'newest', child: Text('Terbaru')),
               DropdownMenuItem(value: 'oldest', child: Text('Terlama')),
               DropdownMenuItem(value: 'title', child: Text('Judul')),
             ],
-            onChanged: (value) {
-              if (value != null) {
-                _saveSortOrder(value);
-              }
-            },
+            onChanged: _saveSortOrder,
           ),
         ],
       ),
@@ -279,51 +273,22 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 _buildPreferenceControls(),
                 Expanded(
                   child: _visibleCatatanList.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'Belum ada catatan',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                      ? const EmptyState(
+                          icon: Icons.description_outlined,
+                          title: 'Belum ada catatan',
+                          message:
+                              'Tambahkan catatan pertama dari tombol plus.',
                         )
                       : ListView.builder(
                           itemCount: _visibleCatatanList.length,
                           itemBuilder: (context, index) {
                             final catatan = _visibleCatatanList[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              child: ListTile(
-                                title: Text(
-                                  catatan['title'] ?? 'No Title',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                subtitle: Text(catatan['content'] ?? ''),
-                                onTap: () => _showCatatanDetail(catatan),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () => _editCatatan(catatan),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () =>
-                                          _hapusCatatan(catatan['id']),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            return NotePreviewCard(
+                              title: catatan['title'] ?? 'No Title',
+                              content: catatan['content'] ?? '',
+                              onOpen: () => _showCatatanDetail(catatan),
+                              onEdit: () => _editCatatan(catatan),
+                              onDelete: () => _hapusCatatan(catatan['id']),
                             );
                           },
                         ),
@@ -335,9 +300,10 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
-        currentIndex: 3,
+        currentIndex: 4,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
@@ -367,7 +333,9 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
                 ),
               );
               break;
-            case 3: // Catatan (Current)
+            case 3: // Folder (belum dibuat)
+              break;
+            case 4: // Catatan (Current)
               break;
           }
         },

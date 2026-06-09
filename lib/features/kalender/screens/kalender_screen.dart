@@ -7,6 +7,8 @@ import '../../catatan/screens/catatan_list_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/filter_dropdown_card.dart';
 import '../../../utils/constants.dart';
 
 class KalenderScreen extends StatefulWidget {
@@ -160,12 +162,11 @@ class _KalenderScreenState extends State<KalenderScreen> {
 
     if (visibleEvents.isEmpty) {
       return const SizedBox(
-        height: 96,
-        child: Center(
-          child: Text(
-            "Belum ada acara",
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
+        height: 180,
+        child: EmptyState(
+          icon: Icons.event_available_outlined,
+          title: 'Belum ada acara',
+          message: 'Tambahkan acara baru dari tombol plus.',
         ),
       );
     }
@@ -255,15 +256,9 @@ class _KalenderScreenState extends State<KalenderScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          DropdownButtonFormField<String>(
-            key: ValueKey(_eventFilter),
-            initialValue: _eventFilter,
-            decoration: InputDecoration(
-              labelText: 'Filter acara',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+          FilterDropdownCard(
+            label: 'Filter acara',
+            value: _eventFilter,
             items: const [
               DropdownMenuItem(value: 'past', child: Text('Yang lalu')),
               DropdownMenuItem(value: 'today', child: Text('Hari ini')),
@@ -272,11 +267,7 @@ class _KalenderScreenState extends State<KalenderScreen> {
                 child: Text('Yang akan datang'),
               ),
             ],
-            onChanged: (value) {
-              if (value != null) {
-                _saveEventFilter(value);
-              }
-            },
+            onChanged: _saveEventFilter,
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -390,6 +381,8 @@ class _KalenderScreenState extends State<KalenderScreen> {
               );
               break;
             case 3:
+              break;
+            case 4:
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -403,6 +396,7 @@ class _KalenderScreenState extends State<KalenderScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
       ),

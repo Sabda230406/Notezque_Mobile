@@ -8,6 +8,8 @@ import '../../../services/sqlite_service.dart';
 import '../../../models/tugas_model.dart';
 import '../../../widgets/task_card.dart';
 import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/filter_dropdown_card.dart';
 import '../../../utils/constants.dart';
 
 class KelolaTugasScreen extends StatefulWidget {
@@ -212,47 +214,29 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
       child: Row(
         children: [
           Expanded(
-            child: DropdownButtonFormField<String>(
-              initialValue: _statusFilter,
-              decoration: InputDecoration(
-                labelText: 'Status',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            child: FilterDropdownCard(
+              label: 'Status',
+              value: _statusFilter,
               items: const [
                 DropdownMenuItem(value: 'all', child: Text('Semua')),
                 DropdownMenuItem(value: 'pending', child: Text('Pending')),
                 DropdownMenuItem(value: 'completed', child: Text('Selesai')),
               ],
-              onChanged: (value) {
-                if (value != null) {
-                  _saveStatusFilter(value);
-                }
-              },
+              onChanged: _saveStatusFilter,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: DropdownButtonFormField<String>(
-              initialValue: _priorityFilter,
-              decoration: InputDecoration(
-                labelText: 'Prioritas',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            child: FilterDropdownCard(
+              label: 'Prioritas',
+              value: _priorityFilter,
               items: const [
                 DropdownMenuItem(value: 'all', child: Text('Semua')),
                 DropdownMenuItem(value: 'low', child: Text('Rendah')),
                 DropdownMenuItem(value: 'medium', child: Text('Sedang')),
                 DropdownMenuItem(value: 'high', child: Text('Tinggi')),
               ],
-              onChanged: (value) {
-                if (value != null) {
-                  _savePriorityFilter(value);
-                }
-              },
+              onChanged: _savePriorityFilter,
             ),
           ),
         ],
@@ -275,7 +259,11 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
                 _buildPreferenceControls(),
                 Expanded(
                   child: _visibleTasks.isEmpty
-                      ? const Center(child: Text(AppStrings.belumAdaTugas))
+                      ? const EmptyState(
+                          icon: Icons.assignment_outlined,
+                          title: AppStrings.belumAdaTugas,
+                          message: 'Buat tugas baru dari tombol plus.',
+                        )
                       : SingleChildScrollView(
                           padding: const EdgeInsets.all(AppSizes.cardPadding),
                           child: Column(
@@ -311,6 +299,7 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
         currentIndex: 1,
@@ -338,6 +327,8 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
               );
               break;
             case 3:
+              break;
+            case 4:
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(

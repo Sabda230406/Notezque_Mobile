@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../kalender/screens/kalender_screen.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../utils/constants.dart';
+import '../../../widgets/progress_ring_card.dart';
 
 /// Dashboard utama aplikasi NotezQue
 /// Menampilkan ringkasan aktivitas pengguna
@@ -15,17 +17,49 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  static const String _showProgressKey = 'dashboard_show_progress_ring';
+  static const String _selectedMetricKey = 'dashboard_selected_metric';
+
   bool _isLoading = true;
   String? _error;
   int _totalTasks = 0;
   int _completedTasks = 0;
   int _todayEvents = 0;
   int _totalNotes = 0;
+  bool _showProgressRing = true;
+  int _selectedMetric = 0;
 
   @override
   void initState() {
     super.initState();
+    _loadPreferences();
     _loadData();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _showProgressRing = prefs.getBool(_showProgressKey) ?? true;
+      _selectedMetric = prefs.getInt(_selectedMetricKey) ?? 0;
+    });
+  }
+
+  Future<void> _saveShowProgressRing(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showProgressKey, value);
+    if (!mounted) return;
+
+    setState(() => _showProgressRing = value);
+  }
+
+  Future<void> _saveSelectedMetric(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_selectedMetricKey, value);
+    if (!mounted) return;
+
+    setState(() => _selectedMetric = value);
   }
 
   Future<void> _loadData() async {
@@ -152,7 +186,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: AppSizes.spacing),
                   const Text("Ringkasan aktivitas kamu hari ini"),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Tampilkan progress'),
+                    value: _showProgressRing,
+                    onChanged: _saveShowProgressRing,
+                  ),
+                  if (_showProgressRing) ...[
+                    ProgressRingCard(
+                      completedTasks: _completedTasks,
+                      totalTasks: _totalTasks,
+                      todayEvents: _todayEvents,
+                      totalNotes: _totalNotes,
+                      selectedIndex: _selectedMetric,
+                      onSelectedIndexChanged: _saveSelectedMetric,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Grid Cards untuk statistik
                   Expanded(
