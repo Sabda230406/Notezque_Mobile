@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/sqlite_service.dart';
+import '../../../utils/constants.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import 'register_screen.dart';
 
@@ -66,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -77,8 +78,11 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 100,
               child: Image.asset(
                 'assets/image/logoNotezQue.png',
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.task_alt, color: Colors.blue, size: 60),
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.task_alt,
+                  color: AppColors.primary,
+                  size: 60,
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -87,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 40),
@@ -124,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

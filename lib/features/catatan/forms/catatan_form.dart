@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../services/sqlite_service.dart';
-import '../../../../utils/constants.dart';
+import '../../../services/sqlite_service.dart';
+import '../../../utils/constants.dart';
+import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/top_nav_actions.dart';
 
 /// Form untuk Create dan Edit Catatan
 /// Mode ditentukan berdasarkan parameter noteId (null = create, ada nilai = edit)
@@ -92,14 +94,11 @@ class _CatatanFormState extends State<CatatanForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: Text(
-          isEditMode ? 'Edit Catatan' : 'Tambah Catatan',
-          style: const TextStyle(color: AppColors.white),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.white),
+      appBar: CustomAppBar(
+        title: isEditMode ? 'Edit Catatan' : 'Tambah Catatan',
+        showBackButton: true,
+        showLogoutButton: true,
+        actions: const [TopNavActions()],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

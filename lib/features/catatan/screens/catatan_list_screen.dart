@@ -10,6 +10,10 @@ import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/filter_dropdown_card.dart';
 import '../../../widgets/note_preview_card.dart';
+<<<<<<< HEAD
+=======
+import '../../../widgets/top_nav_actions.dart';
+>>>>>>> 2fc8af6 (terbaru25)
 import '../../../utils/constants.dart';
 
 class CatatanListScreen extends StatefulWidget {
@@ -265,6 +269,7 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
         title: 'List Catatan',
         showBackButton: false,
         showLogoutButton: true,
+        actions: [TopNavActions()],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahCatatan,

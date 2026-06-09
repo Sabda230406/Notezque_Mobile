@@ -94,6 +94,7 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/dashboard/screens/dashboard_screen.dart';
 import 'services/sqlite_service.dart';
+import 'utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,12 +119,44 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appTextTheme = GoogleFonts.poppinsTextTheme();
+
     return MaterialApp(
       title: 'NotezQue',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+<<<<<<< HEAD
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         textTheme: GoogleFonts.poppinsTextTheme(),
+=======
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          surface: AppColors.white,
+        ),
+        scaffoldBackgroundColor: AppColors.background,
+        textTheme: appTextTheme,
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          iconTheme: const IconThemeData(color: AppColors.white),
+          titleTextStyle: GoogleFonts.poppins(
+            color: AppColors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.white,
+          ),
+        ),
+>>>>>>> 2fc8af6 (terbaru25)
         useMaterial3: true,
       ),
       home: isLoggedIn ? const DashboardScreen() : const LoginScreen(),

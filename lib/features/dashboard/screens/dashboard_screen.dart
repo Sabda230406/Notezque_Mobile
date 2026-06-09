@@ -8,6 +8,10 @@ import '../../../services/sqlite_service.dart';
 import '../../../utils/constants.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/progress_ring_card.dart';
+<<<<<<< HEAD
+=======
+import '../../../widgets/top_nav_actions.dart';
+>>>>>>> 2fc8af6 (terbaru25)
 
 /// Dashboard utama aplikasi NotezQue
 /// Menampilkan ringkasan aktivitas pengguna
@@ -131,17 +135,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.background,
 
       appBar: const CustomAppBar(
         title: 'Dashboard',
         showLogoutButton: true,
-        actions: [
-          Icon(Icons.notifications, color: AppColors.white),
-          SizedBox(width: 10),
-          Icon(Icons.person, color: AppColors.white),
-          SizedBox(width: 10),
-        ],
+        actions: [TopNavActions()],
       ),
 
       // Body

@@ -59,7 +59,11 @@ class NotePreviewCard extends StatelessWidget {
                 ),
               ),
               IconButton(
+<<<<<<< HEAD
                 icon: const Icon(Icons.edit, color: Colors.blue),
+=======
+                icon: const Icon(Icons.edit, color: AppColors.primary),
+>>>>>>> 2fc8af6 (terbaru25)
                 onPressed: onEdit,
                 tooltip: 'Edit',
               ),

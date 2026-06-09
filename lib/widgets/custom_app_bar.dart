@@ -152,31 +152,37 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           // Logo
-          SizedBox(
-            width: AppSizes.logoSize,
-            height: AppSizes.logoSize,
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Image.asset(
-                'assets/image/logoNotezQue.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.task_alt,
-                    color: AppColors.primary,
-                    size: 28,
-                  );
-                },
-              ),
+          Container(
+            width: 42,
+            height: 42,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Image.asset(
+              'assets/image/logoNotezQue.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.task_alt,
+                  color: AppColors.primary,
+                  size: 26,
+                );
+              },
             ),
           ),
           const SizedBox(width: 10),
           // Judul
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppColors.white,
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

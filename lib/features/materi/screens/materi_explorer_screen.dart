@@ -3,6 +3,8 @@ import 'package:file_picker/file_picker.dart';
 import '../../../models/materi_model.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../utils/constants.dart';
+import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/top_nav_actions.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../kalender/screens/kalender_screen.dart';
@@ -171,6 +173,47 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
     }
   }
 
+  void _showMateriActionSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.create_new_folder,
+                  color: AppColors.primary,
+                ),
+                title: const Text('Folder Baru'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showCreateFolderDialog();
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.upload_file,
+                  color: AppColors.primary,
+                ),
+                title: const Text('Upload File'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _pickFile();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _deleteFolder(int id) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -238,6 +281,7 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
@@ -256,6 +300,13 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
             onPressed: _pickFile,
           ),
         ],
+=======
+      backgroundColor: AppColors.background,
+      appBar: const CustomAppBar(
+        title: 'Materi & File',
+        showLogoutButton: true,
+        actions: [TopNavActions()],
+>>>>>>> 2fc8af6 (terbaru25)
       ),
       body: Column(
         children: [
@@ -392,6 +443,10 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: ''),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showMateriActionSheet,
+        child: const Icon(Icons.add),
       ),
     );
   }

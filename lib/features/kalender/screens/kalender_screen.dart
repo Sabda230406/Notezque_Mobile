@@ -10,6 +10,10 @@ import '../../../services/sqlite_service.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/filter_dropdown_card.dart';
+<<<<<<< HEAD
+=======
+import '../../../widgets/top_nav_actions.dart';
+>>>>>>> 2fc8af6 (terbaru25)
 import '../../../utils/constants.dart';
 
 class KalenderScreen extends StatefulWidget {
@@ -205,7 +209,7 @@ class _KalenderScreenState extends State<KalenderScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  icon: const Icon(Icons.edit, color: AppColors.primary),
                   onPressed: () => _editEvent(e),
                 ),
                 IconButton(
@@ -341,6 +345,7 @@ class _KalenderScreenState extends State<KalenderScreen> {
         title: "List Acara",
         showBackButton: false,
         showLogoutButton: true,
+        actions: [TopNavActions()],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addEvent,
