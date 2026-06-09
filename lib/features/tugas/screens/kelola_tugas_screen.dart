@@ -268,6 +268,7 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
       appBar: const CustomAppBar(
         title: AppStrings.listTugas,
         showBackButton: false,
+        showLogoutButton: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

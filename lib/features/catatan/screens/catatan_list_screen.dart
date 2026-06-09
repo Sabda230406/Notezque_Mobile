@@ -267,7 +267,11 @@ class _CatatanListScreenState extends State<CatatanListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'List Catatan', showBackButton: false),
+      appBar: const CustomAppBar(
+        title: 'List Catatan',
+        showBackButton: false,
+        showLogoutButton: true,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambahCatatan,
         backgroundColor: AppColors.primary,
