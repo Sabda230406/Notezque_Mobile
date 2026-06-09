@@ -125,10 +125,6 @@ class MyApp extends StatelessWidget {
       title: 'NotezQue',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-<<<<<<< HEAD
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        textTheme: GoogleFonts.poppinsTextTheme(),
-=======
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           primary: AppColors.primary,
@@ -156,7 +152,6 @@ class MyApp extends StatelessWidget {
             foregroundColor: AppColors.white,
           ),
         ),
->>>>>>> 2fc8af6 (terbaru25)
         useMaterial3: true,
       ),
       home: isLoggedIn ? const DashboardScreen() : const LoginScreen(),

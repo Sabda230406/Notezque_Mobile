@@ -281,32 +281,11 @@ class _MateriExplorerScreenState extends State<MateriExplorerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text(
-          'Materi & File',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.primary,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.create_new_folder, color: Colors.white),
-            onPressed: _showCreateFolderDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.upload_file, color: Colors.white),
-            onPressed: _pickFile,
-          ),
-        ],
-=======
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
         title: 'Materi & File',
         showLogoutButton: true,
         actions: [TopNavActions()],
->>>>>>> 2fc8af6 (terbaru25)
       ),
       body: Column(
         children: [
