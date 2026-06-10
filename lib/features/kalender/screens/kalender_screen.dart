@@ -3,13 +3,14 @@ import '../../materi/screens/materi_explorer_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forms/acara_form.dart';
+import '../widgets/calendar_preference_card.dart';
+import '../widgets/calendar_swipe_card.dart';
 import '../../tugas/screens/kelola_tugas_screen.dart';
 import '../../catatan/screens/catatan_list_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../../services/sqlite_service.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/empty_state.dart';
-import '../../../widgets/filter_dropdown_card.dart';
 import '../../../widgets/top_nav_actions.dart';
 import '../../../utils/constants.dart';
 
@@ -22,13 +23,12 @@ class KalenderScreen extends StatefulWidget {
 
 class _KalenderScreenState extends State<KalenderScreen> {
   static const String _eventFilterKey = 'calendar_event_filter';
-  static const String _reminderEnabledKey = 'calendar_reminder_enabled';
+  static const String _calendarExpandedViewKey = 'calendar_expanded_view';
 
   DateTime selectedDate = DateTime.now();
   List<dynamic> events = [];
   bool isLoading = true;
   String _eventFilter = 'today';
-  bool _reminderEnabled = false;
   bool _isCalendarExpanded = false;
 
   @override
@@ -40,12 +40,11 @@ class _KalenderScreenState extends State<KalenderScreen> {
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('calendar_selected_view');
     if (!mounted) return;
 
     setState(() {
       _eventFilter = prefs.getString(_eventFilterKey) ?? 'today';
-      _reminderEnabled = prefs.getBool(_reminderEnabledKey) ?? false;
+      _isCalendarExpanded = prefs.getBool(_calendarExpandedViewKey) ?? false;
     });
   }
 
@@ -57,12 +56,16 @@ class _KalenderScreenState extends State<KalenderScreen> {
     setState(() => _eventFilter = value);
   }
 
-  Future<void> _saveReminderEnabled(bool value) async {
+  Future<void> _saveCalendarExpanded(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_reminderEnabledKey, value);
+    await prefs.setBool(_calendarExpandedViewKey, value);
     if (!mounted) return;
 
-    setState(() => _reminderEnabled = value);
+    setState(() => _isCalendarExpanded = value);
+  }
+
+  void _changeSelectedDate(DateTime value) {
+    setState(() => selectedDate = value);
   }
 
   Future<void> _fetchEvents() async {
@@ -256,28 +259,9 @@ class _KalenderScreenState extends State<KalenderScreen> {
   Widget _buildPreferenceControls() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          FilterDropdownCard(
-            label: 'Filter acara',
-            value: _eventFilter,
-            items: const [
-              DropdownMenuItem(value: 'past', child: Text('Yang lalu')),
-              DropdownMenuItem(value: 'today', child: Text('Hari ini')),
-              DropdownMenuItem(
-                value: 'upcoming',
-                child: Text('Yang akan datang'),
-              ),
-            ],
-            onChanged: _saveEventFilter,
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Reminder acara'),
-            value: _reminderEnabled,
-            onChanged: _saveReminderEnabled,
-          ),
-        ],
+      child: CalendarPreferenceCard(
+        eventFilter: _eventFilter,
+        onEventFilterChanged: _saveEventFilter,
       ),
     );
   }
@@ -287,43 +271,20 @@ class _KalenderScreenState extends State<KalenderScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
         children: [
-          Material(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(12),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              leading: const Icon(
-                Icons.calendar_today,
-                color: AppColors.primary,
-              ),
-              title: const Text('Kalender'),
-              subtitle: Text(
-                DateTimeHelper.formatDate(selectedDate.toString()),
-              ),
-              trailing: IconButton(
-                icon: Icon(
-                  _isCalendarExpanded ? Icons.expand_less : Icons.expand_more,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isCalendarExpanded = !_isCalendarExpanded;
-                  });
-                },
-              ),
-              onTap: () {
-                setState(() {
-                  _isCalendarExpanded = !_isCalendarExpanded;
-                });
-              },
-            ),
+          CalendarSwipeCard(
+            selectedDate: selectedDate,
+            isExpanded: _isCalendarExpanded,
+            onToggleExpanded: () => _saveCalendarExpanded(!_isCalendarExpanded),
+            onDateChanged: _changeSelectedDate,
           ),
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: CalendarDatePicker(
+              key: ValueKey(selectedDate),
               initialDate: selectedDate,
               firstDate: DateTime(2020),
               lastDate: DateTime(2030),
-              onDateChanged: (d) => setState(() => selectedDate = d),
+              onDateChanged: _changeSelectedDate,
             ),
             crossFadeState: _isCalendarExpanded
                 ? CrossFadeState.showSecond
