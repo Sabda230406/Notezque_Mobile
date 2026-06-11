@@ -192,6 +192,22 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
     }
   }
 
+  Future<void> _completeTaskFromSwipe(Tugas tugas) async {
+    if (!SQLiteService.isLoggedIn || tugas.status == 'completed') return;
+
+    try {
+      await SQLiteService.toggleTaskStatus(tugas.id, 'completed');
+      await _fetchTugas();
+      if (mounted) {
+        _showSnackBar('Tugas diselesaikan lewat swipe');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Gagal menyelesaikan tugas: $e');
+      }
+    }
+  }
+
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -279,6 +295,8 @@ class _KelolaTugasScreenState extends State<KelolaTugasScreen> {
                                     onDelete: () => _deleteTask(tugas.id),
                                     onToggleStatus: () =>
                                         _toggleTaskStatus(tugas),
+                                    onSwipeComplete: () =>
+                                        _completeTaskFromSwipe(tugas),
                                     onTap: () => _showTaskDetail(tugas),
                                   ),
                                 )

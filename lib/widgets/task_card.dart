@@ -93,6 +93,7 @@ class TaskCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onToggleStatus;
+  final Future<void> Function()? onSwipeComplete;
   final VoidCallback? onTap;
 
   const TaskCard({
@@ -101,6 +102,7 @@ class TaskCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onToggleStatus,
+    this.onSwipeComplete,
     this.onTap,
   });
 
@@ -109,7 +111,7 @@ class TaskCard extends StatelessWidget {
     // Tentukan apakah tugas sudah selesai
     bool isCompleted = tugas.status == 'completed';
 
-    return InkWell(
+    final card = InkWell(
       borderRadius: BorderRadius.circular(AppSizes.borderRadius),
       onTap: onTap,
       child: Card(
@@ -279,6 +281,53 @@ class TaskCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+
+    if (isCompleted || onSwipeComplete == null) {
+      return card;
+    }
+
+    return Dismissible(
+      key: ValueKey('task-card-${tugas.id}-${tugas.status}'),
+      direction: DismissDirection.horizontal,
+      background: _buildSwipeBackground(alignment: Alignment.centerLeft),
+      secondaryBackground: _buildSwipeBackground(
+        alignment: Alignment.centerRight,
+      ),
+      confirmDismiss: (_) async {
+        await onSwipeComplete!();
+        return false;
+      },
+      child: card,
+    );
+  }
+
+  Widget _buildSwipeBackground({required Alignment alignment}) {
+    final isLeft = alignment == Alignment.centerLeft;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSizes.cardPadding),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      alignment: alignment,
+      decoration: BoxDecoration(
+        color: Colors.green.shade600,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        textDirection: isLeft ? TextDirection.ltr : TextDirection.rtl,
+        children: const [
+          Icon(Icons.check_circle, color: AppColors.white),
+          SizedBox(width: 8),
+          Text(
+            'Selesai',
+            style: TextStyle(
+              color: AppColors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
